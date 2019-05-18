@@ -1,5 +1,6 @@
 # **Machine Learning Cookbooks**
 [![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badge/)
+[![Python version](https://img.shields.io/badge/Python-r3.6-yellowgreen.svg)](https://img.shields.io/badge/Python-r3.6-yellowgreen.svg)
 [![TensorFlow version](https://img.shields.io/badge/TensorFlow-r1.13-brightgreen.svg)](https://img.shields.io/static/v1.svg?label=TensorFlow&message=r1.13&color=brightgreen)
 [![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](https://img.shields.io/static/v1.svg?label=License&message=MIT&color=blue)
 [![Language info](https://img.shields.io/badge/Experience-enjoyful-red.svg)](https://img.shields.io/static/v1.svg?label=Experience&message=enjoyful&color=red)

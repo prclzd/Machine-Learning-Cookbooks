@@ -15,7 +15,7 @@ def load_dataset(filename='../../../dataset/svm-examples/testSet.txt'):
     for line in fr.readlines():
         line_data = line.strip().split()
         features.append([float(line_data[0]), float(line_data[1])])
-        labels.append(int(line_data[2]))
+        labels.append(float(line_data[2]))
     return features, labels
 
 
@@ -337,10 +337,7 @@ class SmoOptimization:
         for i in range(m):
             w += np.multiply(alphas[i] * y[i], X[i, :].T)
         predicted = np.mat(feature) * np.mat(w) + b
-        if predicted > 0:
-            return 1
-        else:
-            return -1
+        return np.sign(predicted)
 
     @staticmethod
     def map_with_kernels(X, compared_vec, kernel_tuple):
@@ -354,7 +351,7 @@ class SmoOptimization:
         :return:
         """
         m, n = np.shape(X)
-        distances = np.mat((m, 1))
+        distances = np.mat(np.zeros((m, 1)))
         # in the case of the linear kernel, a dot product is taken between the two inputs,
         # which are the full dataset and a row of the dataset
         if kernel_tuple[0] == 'lin':
@@ -370,15 +367,49 @@ class SmoOptimization:
         return distances
 
 
-def rbf_kernel_test(sigma=1.3):
+def smo_test():
     data_arr, label_arr = load_dataset()
-    brf_b, rbf_alphas = SmoOptimization.smo(data_arr, label_arr, 200, 0.0001, 10000,
-                                            use_kernel=True, kernel_tuple=('rbf', sigma))
+    lin_b, lin_alphas = SmoOptimization.smo(data_arr, label_arr, 0.6, 0.001, 40)
+    error_count = 0.
+    for i in range(len(data_arr)):
+        if SmoOptimization.classify(data_arr[i], lin_alphas, lin_b, data_arr, label_arr) != np.sign(label_arr[i]):
+            error_count += 1
+    print('The training error rate is: %f%%' % (error_count * 100 / len(data_arr)))
+
+
+def rbf_kernel_test(sigma=1.3):
+    data_arr, label_arr = load_dataset('../../../dataset/svm-examples/testSetRBF.txt')
+    rbf_b, rbf_alphas = SmoOptimization.smo(
+        data_arr, label_arr, 200, 0.0001, 10000, use_kernel=True, kernel_tuple=('rbf', sigma)
+    )
+    data_mat, label_mat = np.mat(data_arr), np.mat(label_arr).transpose()
+    sv_idx = np.nonzero(rbf_alphas.A > 0)[0]
+    support_vectors = data_mat[sv_idx]
+    support_labels = label_mat[sv_idx]
+    print('There are %d support vectors' % len(sv_idx))
+    print('The supported vectors are:\n', support_vectors, '\nthere labels are:\n', support_labels)
+
+    m, n = np.shape(data_mat)
+    error_count = 0.
+    for i in range(m):
+        sv_mapped_features = SmoOptimization.map_with_kernels(support_vectors, data_mat[i, :], ('rbf', sigma))
+        predicted = sv_mapped_features.T * np.multiply(support_labels, rbf_alphas[sv_idx]) + rbf_b
+        if np.sign(label_arr[i]) != np.sign(predicted):
+            error_count += 1
+    print('The training error rate is: %f%%' % (error_count * 100 / m))
+
+    data_arr, label_arr = load_dataset('../../../dataset/svm-examples/testSetRBF2.txt')
+    data_mat, label_mat = np.mat(data_arr), np.mat(label_arr).transpose()
+    m, n = np.shape(data_mat)
+    error_count = 0.
+    for i in range(m):
+        sv_mapped_features = SmoOptimization.map_with_kernels(support_vectors, data_mat[i, :], ('rbf', sigma))
+        predicted = sv_mapped_features.T * np.multiply(support_labels, rbf_alphas[sv_idx]) + rbf_b
+        if np.sign(label_arr[i]) != np.sign(predicted):
+            error_count += 1
+    print('The test error rate is: %f%%' % (error_count * 100 / m))
 
 
 if __name__ == '__main__':
-    data_arr, label_arr = load_dataset()
-    b, alphas = SmoOptimization.smo(data_arr, label_arr, 0.6, 0.001, 40)
-    print(b)
-    print(alphas)
-    # rbf_kernel_test()
+    # smo_test()
+    rbf_kernel_test()
