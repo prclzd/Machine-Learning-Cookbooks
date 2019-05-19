@@ -7,6 +7,7 @@ Author:
 """
 import random
 import numpy as np
+import os
 
 
 def load_dataset(filename='../../../dataset/svm-examples/testSet.txt'):
@@ -179,11 +180,14 @@ class SmoOptimization:
         self.errors_cache = np.mat(np.zeros((self.m, 2)))
 
         self.use_kernel = use_kernel
-        # set newly mapped 'distances' (or features) by the chosen kernel types
-        # (default is 'lin' for linear-separable dataset)
-        self.mapped_X = np.mat(np.zeros((self.m, self.m)))
-        for i in range(self.m):
-            self.mapped_X[:, i] = SmoOptimization.map_with_kernels(self.X, self.X[i, :], kernel_tuple)
+        # if we do not use kernels, no need to do the complicate computation!
+        # especially when the features' dimension is large!
+        if self.use_kernel:
+            # set newly mapped 'distances' (or features) by the chosen kernel types
+            # (default is 'lin' for linear-separable dataset)
+            self.mapped_X = np.mat(np.zeros((self.m, self.m)))
+            for i in range(self.m):
+                self.mapped_X[:, i] = SmoOptimization.map_with_kernels(self.X, self.X[i, :], kernel_tuple)
 
     def get_error(self, k):
         """
@@ -380,8 +384,7 @@ def smo_test():
 def rbf_kernel_test(sigma=1.3):
     data_arr, label_arr = load_dataset('../../../dataset/svm-examples/testSetRBF.txt')
     rbf_b, rbf_alphas = SmoOptimization.smo(
-        data_arr, label_arr, 200, 0.0001, 10000, use_kernel=True, kernel_tuple=('rbf', sigma)
-    )
+        data_arr, label_arr, 200, 0.0001, 10000, use_kernel=True, kernel_tuple=('rbf', sigma))
     data_mat, label_mat = np.mat(data_arr), np.mat(label_arr).transpose()
     sv_idx = np.nonzero(rbf_alphas.A > 0)[0]
     support_vectors = data_mat[sv_idx]
@@ -410,6 +413,97 @@ def rbf_kernel_test(sigma=1.3):
     print('The test error rate is: %f%%' % (error_count * 100 / m))
 
 
+def img2vec(filename='../../../dataset/digits/testDigits/0_0.txt'):
+    """
+    The function convert the digit stored in txt into vector (numpy array).
+
+    :param filename: the file name (directory) where the digit stored
+    :return: the numpy array
+    """
+    return_vec = np.zeros((1, 1024))
+    file = open(filename)
+    for i in range(32):
+        line = file.readline()
+        for j in range(32):
+            return_vec[0, 32*i+j] = int(line[j])
+    return return_vec
+
+
+def load_image(dirname):
+    file_list = os.listdir(dirname)
+    instance_num = len(file_list)
+    features = np.zeros((instance_num, 1024))
+    labels = []
+    for i in range(instance_num):
+        filename = file_list[i]
+        prefix = filename.split('.')[0]
+        label = int(prefix.split('_')[0])
+        # we only classify '9' and 'non-9' digits
+        if label == 9:
+            labels.append(-1)
+        else:
+            labels.append(1)
+        features[i, :] = img2vec('%s/%s' % (dirname, filename))
+    return features, labels
+
+
+def handwriting_recognition(use_kernel=False, kernel_tuple=('rbf', 10)):
+    """
+    The function provides an example of using SVM to classify handwriting digits.
+    ===> Warning: the procedure may consume a lot of time! <===
+
+    :return: total error rate on test instances
+    """
+    train_features, train_labels = load_image('../../../dataset/digits/trainingDigits')
+    b, alphas = SmoOptimization.smo(
+        train_features, train_labels, 200, 0.0001, 10000, use_kernel=use_kernel, kernel_tuple=kernel_tuple)
+
+    if not use_kernel:
+        error_count = 0.
+        for i in range(len(train_features)):
+            if SmoOptimization.classify(train_features[i], alphas, b, train_features, train_labels) != \
+                    np.sign(train_labels[i]):
+                error_count += 1
+        print('The training error rate is: %f%%' % (error_count * 100 / len(train_features)))
+
+        test_features, test_labels = load_image('../../../dataset/digits/testDigits')
+        error_count = 0.
+        for i in range(len(train_features)):
+            if SmoOptimization.classify(test_features[i], alphas, b, test_features, test_labels) != \
+                    np.sign(test_labels[i]):
+                error_count += 1
+        print('The testing error rate is: %f%%' % (error_count * 100 / len(test_features)))
+
+    else:
+        train_features_mat, train_labels_mat = np.mat(train_features), np.mat(train_labels).transpose()
+        sv_idx = np.nonzero(alphas.A > 0)[0]
+        support_vectors = train_features_mat[sv_idx]
+        support_labels = train_labels_mat[sv_idx]
+        print('There are %d support vectors' % len(sv_idx))
+        print('The supported vectors are:\n', support_vectors, '\nthere labels are:\n', support_labels)
+
+        m, n = np.shape(train_features_mat)
+        error_count = 0.
+        for i in range(m):
+            sv_mapped_features = SmoOptimization.map_with_kernels(support_vectors, train_features_mat[i, :], kernel_tuple)
+            predicted = sv_mapped_features.T * np.multiply(support_labels, alphas[sv_idx]) + b
+            if np.sign(train_labels[i]) != np.sign(predicted):
+                error_count += 1
+        print('The training error rate is: %f%%' % (error_count * 100 / m))
+
+        test_features, test_labels = load_image('../../../dataset/digits/testDigits')
+        test_features_mat, test_labels_mat = np.mat(test_features), np.mat(test_labels).transpose()
+        m, n = np.shape(test_features_mat)
+        error_count = 0.
+        for i in range(m):
+            sv_mapped_features = SmoOptimization.map_with_kernels(support_vectors, test_features_mat[i, :], kernel_tuple)
+            predicted = sv_mapped_features.T * np.multiply(support_labels, alphas[sv_idx]) + b
+            if np.sign(test_labels[i]) != np.sign(predicted):
+                error_count += 1
+        print('The test error rate is: %f%%' % (error_count * 100 / m))
+
+
 if __name__ == '__main__':
     # smo_test()
-    rbf_kernel_test()
+    # rbf_kernel_test()
+    handwriting_recognition()
