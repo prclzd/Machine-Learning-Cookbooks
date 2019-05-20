@@ -485,7 +485,8 @@ def handwriting_recognition(use_kernel=False, kernel_tuple=('rbf', 10)):
         m, n = np.shape(train_features_mat)
         error_count = 0.
         for i in range(m):
-            sv_mapped_features = SmoOptimization.map_with_kernels(support_vectors, train_features_mat[i, :], kernel_tuple)
+            sv_mapped_features = SmoOptimization.map_with_kernels(
+                support_vectors, train_features_mat[i, :], kernel_tuple)
             predicted = sv_mapped_features.T * np.multiply(support_labels, alphas[sv_idx]) + b
             if np.sign(train_labels[i]) != np.sign(predicted):
                 error_count += 1
@@ -496,7 +497,8 @@ def handwriting_recognition(use_kernel=False, kernel_tuple=('rbf', 10)):
         m, n = np.shape(test_features_mat)
         error_count = 0.
         for i in range(m):
-            sv_mapped_features = SmoOptimization.map_with_kernels(support_vectors, test_features_mat[i, :], kernel_tuple)
+            sv_mapped_features = SmoOptimization.map_with_kernels(
+                support_vectors, test_features_mat[i, :], kernel_tuple)
             predicted = sv_mapped_features.T * np.multiply(support_labels, alphas[sv_idx]) + b
             if np.sign(test_labels[i]) != np.sign(predicted):
                 error_count += 1
@@ -504,6 +506,6 @@ def handwriting_recognition(use_kernel=False, kernel_tuple=('rbf', 10)):
 
 
 if __name__ == '__main__':
-    # smo_test()
-    # rbf_kernel_test()
+    smo_test()
+    rbf_kernel_test()
     handwriting_recognition()

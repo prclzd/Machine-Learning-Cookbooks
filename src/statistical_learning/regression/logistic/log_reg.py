@@ -106,8 +106,8 @@ def plot_best_fit(weights_arr, features, labels):
 
 
 def colic_test():
-    train_fr = open('../../../dataset/logistic/horse_colic_train.txt')
-    test_fr = open('../../../dataset/logistic/horse_colic_test.txt')
+    train_fr = open('../../../../dataset/logistic/horse_colic_train.txt')
+    test_fr = open('../../../../dataset/logistic/horse_colic_test.txt')
     train_features, train_labels = [], []
     for line in train_fr.readlines():
         line_data = line.strip().split('\t')
