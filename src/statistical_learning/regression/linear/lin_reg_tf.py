@@ -20,10 +20,10 @@ sheet = book.sheet_by_index(0)
 data = np.asarray([sheet.row_values(i) for i in range(1, sheet.nrows)])
 num_samples = sheet.nrows - 1
 
-tf.app.flags.DEFINE_integer(
+tf.flags.DEFINE_integer(
     'num_epochs', 10, 'The number of epochs for training the model, 50 in default.'
 )
-FLAGS = tf.app.flags.FLAGS
+FLAGS = tf.flags.FLAGS
 
 # create weight and bias
 W = tf.Variable(0.0, name='weight')
