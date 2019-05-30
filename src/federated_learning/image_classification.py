@@ -1,4 +1,3 @@
-from __future__ import absolute_import, division, print_function
 import collections
 from six.moves import range
 import numpy as np
@@ -32,7 +31,6 @@ SHUFFLE_BUFFER = 500
 
 
 def preprocess(dataset):
-
     def element_fn(element):
         return collections.OrderedDict([
             ('x', tf.reshape(element['pixels'], [-1])),

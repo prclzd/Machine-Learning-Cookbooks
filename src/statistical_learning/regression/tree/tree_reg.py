@@ -1,6 +1,9 @@
 """
-This module implements Tree-based Regression by applying Classification And Regression Trees (CART)
-algorithm without calling any pre-defined models and modules.
+This module implements Tree-based Regression by applying Classification And Regression Trees (CART) algorithm
+without calling any pre-defined models and modules.
+Two kinds of trees are created:
+    (i) regression tree: split the data and create a binary tree with lowest error;
+    (ii) model tree: model each leaf node as a piecewise linear model, which consists of multiple linear segments.
 
 Author:
     Hailiang Zhao
@@ -54,6 +57,19 @@ def binary_split(data, feature, value):
     return highers, lowers
 
 
+def linear_solve(data):
+    m, n = np.shape(data)
+    X, y = np.mat(np.ones((m, n))), np.mat(np.ones((m, 1)))
+    X[:, 1:n] = data[:, 0:n-1]
+    y = data[:, -1]
+    xTx = X.T * X
+    if np.linalg.det(xTx) == 0.0:
+        raise NameError('This matrix is singular, cannot do inverse! Try '
+                        'increase the second value of ops.')
+    ws = xTx.I * (X.T * y)
+    return ws, X, y
+
+
 def get_reg_leaf(data):
     """
     This function generates the value for a leaf node, by their mean value.
@@ -64,6 +80,11 @@ def get_reg_leaf(data):
     return np.mean(data[:, -1])
 
 
+def get_model_leaf(data):
+    ws, _, _ = linear_solve(data)
+    return ws
+
+
 def get_reg_error(data):
     """
     This function returns the squared error of the target variables in a given dataset.
@@ -72,6 +93,12 @@ def get_reg_error(data):
     :return:
     """
     return np.var(data[:, -1]) * np.shape(data)[0]
+
+
+def get_model_error(data):
+    ws, X, y = linear_solve(data)
+    y_hat = X * ws
+    return np.sum(np.power(y - y_hat, 2))
 
 
 def choose_axis(data, leaf_type=get_reg_leaf, error_type=get_reg_error, ops=(1, 4)):
@@ -168,6 +195,72 @@ def get_mean(tree):
     return (tree['right'] + tree['left']) / 2.0
 
 
+def evaluate_reg_tree(model, input_data):
+    """
+    Evaluate the value of y for the input_data with regression tree. In order to keep unification, it has the same
+    parameters with evaluate_model_tree().
+
+    :param model:
+    :param input_data:
+    :return:
+    """
+    return float(model)
+
+
+def evaluate_model_tree(model, input_data):
+    """
+    Evaluate the value of y for the input_data with model tree. In order to keep unification, it has the same
+    parameters with evaluate_reg_tree().
+
+    :param model:
+    :param input_data:
+    :return:
+    """
+    n = np.shape(input_data)[1]
+    X = np.mat(np.ones((1, n+1)))
+    X[:, 1:n+1] = input_data
+    return float(X * model)
+
+
+def classify(tree, input_data, model_evaluation=evaluate_reg_tree):
+    """
+    Classify input_data (predict the value of y) with chosen tree model.
+
+    :param tree:
+    :param input_data:
+    :param model_evaluation:
+    :return:
+    """
+    if not is_tree(tree):
+        return model_evaluation(tree, input_data)
+    if input_data[tree['split_axis']] > tree['split_value']:
+        if is_tree(tree['left']):
+            return classify(tree['left'], input_data, model_evaluation)
+        else:
+            return model_evaluation(tree['left'], input_data)
+    else:
+        if is_tree(tree['right']):
+            return classify(tree['right'], input_data, model_evaluation)
+        else:
+            return model_evaluation(tree['right'], input_data)
+
+
+def forecast(tree, test_data, model_evaluation=evaluate_reg_tree):
+    """
+    Classify every instance in test_data and return the predicted values as a numpy matrix.
+
+    :param tree:
+    :param test_data:
+    :param model_evaluation:
+    :return:
+    """
+    m = len(test_data)
+    y_hat = np.mat(np.zeros((m, 1)))
+    for i in range(m):
+        y_hat[i, 0] = classify(tree, np.mat(test_data[i]), model_evaluation)
+    return y_hat
+
+
 def prune(tree, test_data):
     """
     This function descend a inout tree until we reach a node with leaves. We test the leaves against
@@ -217,15 +310,39 @@ if __name__ == '__main__':
     # pp.pprint(reg_tree)
 
     # 3: test post-pruning
-    data_mat2 = np.mat(load_dataset("../../../../dataset/regression-examples/trees/ex2.txt"))
-    reg_tree = create_tree(data_mat2, ops=(100, 4))
-    print('===> Original tree <===')
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(reg_tree)
-    print('\n===> Pruning... <===')
+    # data_mat2 = np.mat(load_dataset("../../../../dataset/regression-examples/trees/ex2.txt"))
+    # reg_tree = create_tree(data_mat2, ops=(100, 4))
+    # print('===> Original tree <===')
+    # pp = pprint.PrettyPrinter(indent=4)
+    # pp.pprint(reg_tree)
+    # print('\n===> Pruning... <===')
+    #
+    # test_data_mat = np.mat(load_dataset("../../../../dataset/regression-examples/trees/ex2test.txt"))
+    # pruned_tree = prune(reg_tree, test_data_mat)
+    # print('\n===> Pruned tree <===')
+    # pp = pprint.PrettyPrinter(indent=4)
+    # pp.pprint(pruned_tree)
 
-    test_data_mat = np.mat(load_dataset("../../../../dataset/regression-examples/trees/ex2test.txt"))
-    pruned_tree = prune(reg_tree, test_data_mat)
-    print('\n===> Pruned tree <===')
+    # 4: test model tree
+    # data_mat3 = np.mat(load_dataset("../../../../dataset/regression-examples/trees/exp2.txt"))
+    # model_tree = create_tree(data_mat3, get_model_leaf, get_model_error, (1, 10))
+    # pp = pprint.PrettyPrinter(indent=4)
+    # pp.pprint(model_tree)
+
+    # 5: evaluation
+    train_mat = np.mat(load_dataset("../../../../dataset/regression-examples/trees/bikeSpeedVsIq_train.txt"))
+    test_mat = np.mat(load_dataset("../../../../dataset/regression-examples/trees/bikeSpeedVsIq_test.txt"))
+
+    bike_reg_tree = create_tree(train_mat, ops=(1, 20))
+    print('===> Regression Tree <===')
     pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(pruned_tree)
+    pp.pprint(bike_reg_tree)
+    y_hat_reg = forecast(bike_reg_tree, test_mat[:, 0])
+    print('\nThe R^2 value is: %f\n\n' % np.corrcoef(y_hat_reg, test_mat[:, 1], rowvar=False)[0, 1])
+
+    bike_model_tree = create_tree(train_mat, get_model_leaf, get_model_error, ops=(1, 20))
+    print('===> Regression Tree <===')
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(bike_model_tree)
+    y_hat_model = forecast(bike_model_tree, test_mat[:, 0], evaluate_model_tree)
+    print('\nThe R^2 value is: %f' % np.corrcoef(y_hat_model, test_mat[:, 1], rowvar=False)[0, 1])
