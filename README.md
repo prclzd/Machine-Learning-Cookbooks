@@ -1,16 +1,16 @@
 # **Machine Learning Cookbooks**
 [![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badge/)
-[![Python version](https://img.shields.io/badge/Python-r3.6-yellowgreen.svg)](https://img.shields.io/badge/Python-r3.6-yellowgreen.svg)
+[![Python version](https://img.shields.io/badge/Python-3.6-yellowgreen.svg)](https://img.shields.io/badge/Python-3.6-yellowgreen.svg)
 [![TensorFlow version](https://img.shields.io/badge/TensorFlow-r1.13-brightgreen.svg)](https://img.shields.io/static/v1.svg?label=TensorFlow&message=r1.13&color=brightgreen)
 [![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](https://img.shields.io/static/v1.svg?label=License&message=MIT&color=blue)
 [![Language info](https://img.shields.io/badge/Experience-enjoyful-red.svg)](https://img.shields.io/static/v1.svg?label=Experience&message=enjoyful&color=red)
 
-- [Machine Learning Cookbooks](#play-with-tensorflow)
+- [**Machine Learning Cookbooks**](#machine-learning-cookbooks)
   - [Motivation](#motivation)
   - [Quick Start](#quick-start)
     - [Environment Setup](#environment-setup)
     - [What are Included](#what-are-included)
-  - [Structural Procedures of Using TensorFlow (based on CNN)](#structural-procedures-of-using-tensorflow-based-on-cnn)
+  - [Structural Procedures on Using TensorFlow (based on CNN)](#structural-procedures-on-using-tensorflow-based-on-cnn)
     - [Step 1: define necessary flags](#step-1-define-necessary-flags)
     - [Step 2: prepare train, evaluation and test data](#step-2-prepare-train-evaluation-and-test-data)
     - [Step 3: define operations and tensors, and store them in a data flow graph](#step-3-define-operations-and-tensors-and-store-them-in-a-data-flow-graph)
@@ -25,21 +25,21 @@
     - [Acknowledgement](#acknowledgement)
     - [License](#license)
 
-## **Motivation**
+## Motivation
 We can not deny that there has already existed *a mass of* open-source courses and tutorials on TensorFlow. However, not many of them are 
 **simple** and **ready-to-use**. This repository aims to provide an easy and fun-filled tutorial on that how to use TensorFlow to train 
 and test Machine Learning models with several structural procedures.
 
 Documentation and **elaborate** code annotation are provided. Hope you can enjoy it!
 
-## **Quick Start**
-### **Environment Setup**
+## Quick Start
+### Environment Setup
 Codes of this repository is based on **Python 3.6** and **TensorFlow r1.13**. For Python installation, please refer to 
 [Python download page](https://www.python.org/downloads/). For TensorFlow installation, please refer to 
 [TensorFlow installation page](https://www.tensorflow.org/install). If you want to build TensorFlow *from source* to maximize the CPU and 
 GPU resource utilization of your computer, please refer to [build from source](https://www.tensorflow.org/install/source).
 
-### **What are Included**
+### What are Included
 The home directories are **dataset**, **figures** and **src**. 
 
 + Directory **dataset** contains two representative datasets, `MNIST` and `fire_theft.xls`.
@@ -75,8 +75,8 @@ The home directories are **dataset**, **figures** and **src**.
   * **Federated Learning frameworks**: Use cases and customized algorithms based on research from Google: *[**Federated Learning**](https://arxiv.org/abs/1610.05492)*.
   * **utils**: This is a package containing utility functions, such as ``load_mnist(...)``, ``global_settings(...)``, ``plot_progress_bar(...)`` and so on.
 
-## **Structural Procedures of Using TensorFlow (based on CNN)**
-### **Step 1: define necessary flags**
+## Structural Procedures on Using TensorFlow (based on CNN)
+### Step 1: define necessary flags
 * ***Define flags on recording 'trained models' and 'event logs'.*** 
   Models can be stored in directory **checkpoints**, and event logs can be stored in directory **logs** of current path. The corresponding Python code is:
   ```Python
@@ -112,7 +112,7 @@ The home directories are **dataset**, **figures** and **src**.
   ```
   All defined flags are stored in ``tf.flags.FLAGS``. We can use ``FLAGS = tf.flags.FLAGS`` to simplify the code.
 
-### **Step 2: prepare train, evaluation and test data**
+### Step 2: prepare train, evaluation and test data
 * ***Read data from csv, xlsx, txt or other kinds of files.*** 
   TensorFlow integrates some typical and classic datasets in ``tensorflow.examples.tutorials``. Here we take MNIST as an example.
   ```Python
@@ -193,7 +193,7 @@ The home directories are **dataset**, **figures** and **src**.
   depth = train_info[3]
   ```
 
-### **Step 3: define operations and tensors, and store them in a data flow graph**
+### Step 3: define operations and tensors, and store them in a data flow graph
 * ***Define graph.*** 
   TensorFlow computation is described by a dataflow graph, it contains a set of ``tf.Operation`` objects, which represent units of computation; 
   and ``tf.Tensor`` objects, which represent the units of data that flow between operations. A typical usage involves the ``tf.Graph.as_default`` 
@@ -376,7 +376,7 @@ The home directories are **dataset**, **figures** and **src**.
         train_op = optimizer.apply_gradients(grads_and_vars=grads_and_vars, global_step=global_step)
   ```
 
-### **Step 4: define summaries and merge them**
+### Step 4: define summaries and merge them
 ``tf.summary`` is a module contains several functions who outputs summary protocol buffers with histograms, images, scalars or text. With the ``tf.summary.merge_all(...)`` 
 method, all defined summaries are collected into the default graph.
 * ***Output summary protocol buffers.*** 
@@ -403,7 +403,7 @@ method, all defined summaries are collected into the default graph.
   train_summary_op_epoch = tf.summary.merge_all('train_epoch')
   ```
 
-### **Step 5: run the session (initialize --> train --> evaluate)**
+### Step 5: run the session (initialize --> train --> evaluate)
 * ***Make preparations.*** 
   In order to generalize the code, we need do some extra works (this part may not need in your code). First we need collect all the ready-to-use tensors 
   into a dictionary, including **operations**, **placeholders** and **serialized summary protocl buffers**. The variables and optimizer may not needed 
@@ -594,7 +594,7 @@ method, all defined summaries are collected into the default graph.
 
   <img src="figures/sketches/running_results.png" align=center />
 
-### **Step 6: Analyze the results**
+### Step 6: Analyze the results
 We can use ``tensorboard --log_dir="absolute\path\to\logs"`` to call the TensorBoard. If it is started correctly, then we can visit 
 it by the address http://127.0.0.1:6006. The board has five main panels, **SCALARS**, **IMAGES**, **GRAPHS**, **DISTRIBUTIONS** and 
 **HISTOGRAMS**. 
@@ -623,26 +623,26 @@ it by the address http://127.0.0.1:6006. The board has five main panels, **SCALA
   
   <img src="figures/diagrams/histograms.png" align=center />
 
-## **Federated Learning**
+## Federated Learning
 
-## **Tips**
+## Tips
 
-## **Final Notes**
-### **Author**
+## Final Notes
+### Author
 **Hailiang Zhao** @ [CCNT Lab](http://www.cs.zju.edu.cn/kejizhan/lab/CCNT.html), [ZJU-CS](http://www.cs.zju.edu.cn/)
 * Email: hliangzhao97@gmail.com
 * GitHub: https://github.com/NarcissusHliangZhao
 * Profile: https://narcissushliangzhao.github.io/Curriculum-Vitae/
 
-### **Reference**
+### Reference
 * https://github.com/machinelearningmindset/TensorFlow-Course.
 * https://github.com/aymericdamien/TensorFlow-Examples.
 * https://github.com/tensorflow/models.
 * https://www.tensorflow.org/api_docs/python/tf.
 
-### **Acknowledgement**
+### Acknowledgement
 This repository is based on many open-source courses. There is no doubt that many of them 
 have taken huge efforts of the authors. Thanks every contributors in TensorFlow Community!
 
-### **License**
+### License
 [MIT License](https://github.com/NarcissusHliangZhao/Play-with-TensorFlow/blob/master/LICENSE)
